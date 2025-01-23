@@ -65,18 +65,18 @@ public abstract class ServerPlayerEntityMixin extends Player implements FiltList
         copyPropertyDelegate((FiltListContainer) oldPlayer);
     }
 
-    @Redirect(method = "openMenu(Lnet/minecraft/world/MenuProvider;)Ljava/util/OptionalInt;", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;closeContainer()V"))
-    public void shouldCloseCurrentScreenHook(ServerPlayer instance, MenuProvider menuProvider) {
-        if (menuProvider instanceof ExtendedMenuProvider extendedMenuProvider) {
-            if (extendedMenuProvider.shouldClose()) {
-                this.closeContainer();
-            } else {
-                this.doCloseContainer();
-            }
-        } else {
-            this.closeContainer();
-        }
-    }
+//    @Redirect(method = "openMenu(Lnet/minecraft/world/MenuProvider;)Ljava/util/OptionalInt;", at = @At(value = "INVOKE", target = "Lnet/minecraft/server/level/ServerPlayer;closeContainer()V"))
+//    public void shouldCloseCurrentScreenHook(ServerPlayer instance, MenuProvider menuProvider) {
+//        if (menuProvider instanceof ExtendedMenuProvider extendedMenuProvider) {
+//            if (extendedMenuProvider.shouldClose()) {
+//                this.closeContainer();
+//            } else {
+//                this.doCloseContainer();
+//            }
+//        } else {
+//            this.closeContainer();
+//        }
+//    }
 
     @Unique
     private void readFiltList(CompoundTag nbt) {

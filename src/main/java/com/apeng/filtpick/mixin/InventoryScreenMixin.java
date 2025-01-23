@@ -17,6 +17,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
@@ -84,7 +85,7 @@ public abstract class InventoryScreenMixin extends EffectRenderingInventoryScree
     @Unique
     private void initFiltPickEntryButton() {
         calculateEntryButtonPos();
-        filtPickEntryButton = new LegacyTexturedButton(filtPickEntryButtonPosX, filtPickEntryButtonPosY, 20, 18, 0, 0, 19, FILTPICK_ENTRY_TEXTURE, button -> NetworkHandler.send2Server(new OpenFiltPickScreenC2SPacket()));
+        filtPickEntryButton = new LegacyTexturedButton(filtPickEntryButtonPosX, filtPickEntryButtonPosY, 20, 18, 0, 0, 19, FILTPICK_ENTRY_TEXTURE, button -> PacketDistributor.sendToServer(new OpenFiltPickScreenC2SPacket()));
         setTooltip2EntryButton();
     }
 

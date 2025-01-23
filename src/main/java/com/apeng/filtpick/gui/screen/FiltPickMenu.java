@@ -4,6 +4,7 @@ import com.apeng.filtpick.FiltPick;
 import com.apeng.filtpick.mixinduck.FiltListContainer;
 import com.apeng.filtpick.network.NetworkHandler;
 import com.apeng.filtpick.network.SynMenuFieldC2SPacket;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.protocol.game.ServerboundContainerButtonClickPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Container;
@@ -13,16 +14,17 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
-import net.minecraftforge.registries.DeferredRegister;
-import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class FiltPickMenu extends AbstractContainerMenu {
 
-    public static final DeferredRegister<MenuType<?>> REGISTER = DeferredRegister.create(ForgeRegistries.MENU_TYPES, FiltPick.ID);
-    public static final RegistryObject<MenuType<FiltPickMenu>> TYPE = REGISTER.register("filt_menu", () -> new MenuType(FiltPickMenu::new, FeatureFlags.DEFAULT_FLAGS));
+    public static final DeferredRegister<MenuType<?>> MENU_TYPE_REGISTER = DeferredRegister.create(Registries.MENU, FiltPick.ID);
+    public static final Supplier<MenuType<FiltPickMenu>> MENU_TYPE_SUPPLIER = MENU_TYPE_REGISTER.register("filtlist", () -> new MenuType<>(FiltPickMenu::new, FeatureFlags.DEFAULT_FLAGS));
+
     private final ContainerData propertyDelegate;
     private final Inventory playerInventory;
     private final Container filtList;
@@ -40,7 +42,7 @@ public class FiltPickMenu extends AbstractContainerMenu {
 
     // For server side
     public FiltPickMenu(int syncId, Inventory playerInventory, Container filtList, ContainerData propertyDelegate) {
-        super(TYPE.get(), syncId);
+        super(MENU_TYPE_SUPPLIER.get(), syncId);
         this.propertyDelegate = propertyDelegate;
         this.playerInventory = playerInventory;
         this.filtList = filtList;
@@ -272,7 +274,7 @@ public class FiltPickMenu extends AbstractContainerMenu {
      */
     private boolean synDisplayedRowOffsetWithServer() {
         if(isClientSide()) {
-            NetworkHandler.send2Server(new SynMenuFieldC2SPacket(displayedRowOffset));
+            PacketDistributor.sendToServer(new SynMenuFieldC2SPacket(displayedRowOffset));
             return true;
         }
         return false;

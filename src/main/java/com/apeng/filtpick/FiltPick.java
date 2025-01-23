@@ -6,13 +6,15 @@ import com.apeng.filtpick.config.FiltPickServerConfig;
 import com.apeng.filtpick.gui.screen.FiltPickMenu;
 import com.apeng.filtpick.gui.screen.FiltPickScreen;
 import com.apeng.filtpick.network.NetworkHandler;
-import net.minecraft.client.gui.screens.MenuScreens;
+import fuzs.forgeconfigapiport.neoforge.api.forge.v4.ForgeConfigRegistry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraftforge.common.ForgeConfigSpec;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.registries.DeferredRegister;
 import org.slf4j.Logger;
 
 // The value here should match an entry in the META-INF/mods.toml file
@@ -22,21 +24,18 @@ public class FiltPick {
     public static final String ID = "filtpick";
     public static final Logger LOGGER = LogUtils.getLogger();
 
-    private static final IEventBus FORGE_EVENT_BUS = MinecraftForge.EVENT_BUS;
-    private static final IEventBus MOD_EVENT_BUS = FMLJavaModLoadingContext.get().getModEventBus();
-
     public static FiltPickClientConfig CLIENT_CONFIG;
     public static FiltPickServerConfig SERVER_CONFIG;
 
-    public FiltPick() {
-        registerNetwork();
-        registerMenu();
-        registerScreen();
+    public FiltPick(IEventBus modBus) {
+        registerMenuType(modBus);
+        modBus.addListener(FiltPick::registerScreen);
+        modBus.addListener(NetworkHandler::registerAll);
         registerConfigs();
     }
 
-    private static void registerNetwork() {
-        NetworkHandler.registerAll();
+    private static void registerMenuType(IEventBus modBus) {
+        FiltPickMenu.MENU_TYPE_REGISTER.register(modBus);
     }
 
     private static void registerConfigs() {
@@ -47,28 +46,17 @@ public class FiltPick {
     private static void registerClientConfig() {
         ForgeConfigSpec.Builder clientBuilder = new ForgeConfigSpec.Builder();
         CLIENT_CONFIG = FiltPickClientConfig.getInstance(clientBuilder); // Create singleton instance
-        ModLoadingContext.get().registerConfig(ModConfig.Type.CLIENT, clientBuilder.build());
+        ForgeConfigRegistry.INSTANCE.register(ModConfig.Type.CLIENT, clientBuilder.build());
     }
 
     private static void registerServerConfig() {
         ForgeConfigSpec.Builder serverBuilder = new ForgeConfigSpec.Builder();
         SERVER_CONFIG = FiltPickServerConfig.getInstance(serverBuilder); // Create singleton instance
-        ModLoadingContext.get().registerConfig(ModConfig.Type.SERVER, serverBuilder.build());
+        ForgeConfigRegistry.INSTANCE.register(ModConfig.Type.SERVER, serverBuilder.build());
     }
 
-    private void registerScreen() {
-        MOD_EVENT_BUS.addListener(this::registerMenuScreen);
-    }
-
-    private void registerMenu() {
-        FiltPickMenu.REGISTER.register(MOD_EVENT_BUS);
-    }
-
-    private void registerMenuScreen(FMLClientSetupEvent event) {
-        // MenuScreens#register is not thread-safe, so it needs to be called inside #enqueueWork provided by the parallel dispatch event.
-        event.enqueueWork(
-                () -> MenuScreens.register(FiltPickMenu.TYPE.get(), FiltPickScreen::new)
-        );
+    private static void registerScreen(RegisterMenuScreensEvent event) {
+        event.register(FiltPickMenu.MENU_TYPE_SUPPLIER.get(), FiltPickScreen::new);
     }
 
 }
